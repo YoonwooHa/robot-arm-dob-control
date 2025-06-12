@@ -536,10 +536,6 @@ class RobotArm2DVisualizer:
         self.ref_traj_x = []
         self.ref_traj_y = []
         
-        # 동적 축 범위 조정을 위한 변수
-        self.x_min, self.x_max = float('inf'), float('-inf')
-        self.y_min, self.y_max = float('inf'), float('-inf')
-        
         # 업데이트 카운터 (성능 최적화)
         self.update_counter = 0
         self.update_interval = 3  # 3번에 1번만 업데이트
@@ -587,16 +583,6 @@ class RobotArm2DVisualizer:
         
         # 궤적 업데이트 (간격을 두고)
         if self.update_counter % self.update_interval == 0:
-            # 동적 축 범위 업데이트
-            if len(self.actual_traj_x) > 10:
-                recent_x = self.actual_traj_x[-50:] + self.ref_traj_x[-50:]  # 최근 50개 점만 고려
-                recent_y = self.actual_traj_y[-50:] + self.ref_traj_y[-50:]
-                
-                self.x_min = min(recent_x)
-                self.x_max = max(recent_x)
-                self.y_min = min(recent_y)
-                self.y_max = max(recent_y)
-            
             # 궤적 라인 업데이트
             self.trajectory.set_data(self.actual_traj_x, self.actual_traj_y)
             self.ref_trajectory.set_data(self.ref_traj_x, self.ref_traj_y)
@@ -607,11 +593,10 @@ class RobotArm2DVisualizer:
             self.current_pos.set_data([x2], [y2])
             self.ref_pos.set_data([x2_ref], [y2_ref])
             
-            # 확대된 궤적 창의 축 범위 동적 조정
-            if self.x_max > self.x_min and self.y_max > self.y_min:
-                margin = 0.05
-                self.ax_trajectory.set_xlim(self.x_min - margin, self.x_max + margin)
-                self.ax_trajectory.set_ylim(self.y_min - margin, self.y_max + margin)
+            # 확대된 궤적 창의 축 범위 고정 (로봇 팔 작업 공간 기준)
+            margin = 0.1
+            self.ax_trajectory.set_xlim(-2.0 - margin, 2.0 + margin)  # 로봇 팔 최대 도달 범위 기준
+            self.ax_trajectory.set_ylim(-2.0 - margin, 2.0 + margin)
             
             # 화면 업데이트
             self.fig_robot.canvas.draw_idle()  # draw() 대신 draw_idle() 사용
